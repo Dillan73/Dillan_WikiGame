@@ -30,16 +30,16 @@ public class WikiGame {
         System.out.println("depth is: " + depth + ", link is: https://en.wikipedia.org" + startLink);
 
         // BASE CASE
-        if () {
-
-        } else if () {
-
-        }
-
-        // GENERAL RECURSIVE CASE
-        else {
-
-        }
+//        if () {
+//
+//        } else if () {
+//
+//        }
+//
+//        // GENERAL RECURSIVE CASE
+//        else {
+//
+//        }
 
         return false;
     }
