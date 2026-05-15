@@ -1,9 +1,12 @@
+//TODO fix that parenthesis issue
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
+
+//https://en.wikipedia.org/wiki/Donald_Trump%5E^https://en.wikipedia.org/wiki/Joe_Biden
 public class WikiGame {
 
     private int maxDepth;
@@ -15,8 +18,8 @@ public class WikiGame {
 
     public WikiGame() {
 
-        String startLink = "";  // beginning link, where the program will start
-        String endLink = "";    // ending link, where the program is trying to get to
+        String startLink = "https://en.wikipedia.org/wiki/Donald_Trump%5E";  // beginning link, where the program will start
+        String endLink = "https://en.wikipedia.org/wiki/Joe_Biden";    // ending link, where the program is trying to get to
         maxDepth = 1;           // start this at 1 or 2, and if you get it going fast, increase
 
         for(maxDepth = 0; maxDepth < 2; maxDepth++){
@@ -39,7 +42,7 @@ public class WikiGame {
     // recursion method
     public boolean findLink(String startLink, String endLink, int depth) {
 
-        System.out.println("depth is: " + depth + ", link is: https://en.wikipedia.org" + startLink);
+        System.out.println("depth is: " + depth + ", link is: " + startLink);
 
         //didnt get there in curr value of maxDepth
         if (depth < 0){
@@ -87,6 +90,7 @@ public class WikiGame {
             while ( (line = reader.readLine()) != null ) {
                 href(line, listOfLinks);
                 src(line, listOfLinks);
+                System.out.println(listOfLinks);
             }
             //adding all links with href and or src and or multiple to links arraylist
         }catch(Exception e){
@@ -96,6 +100,7 @@ public class WikiGame {
         String[] allLinks = new String[listOfLinks.size()];
         for(int i = 0; i < listOfLinks.size(); i++){
             allLinks[i] = listOfLinks.get(i);
+
         }
         return allLinks;
         //converting the links to an array to return
