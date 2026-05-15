@@ -1,3 +1,7 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 
 public class WikiGame {
@@ -49,7 +53,7 @@ public class WikiGame {
         }
 
         //check all links
-        ArrayList<String> innerLinks = findInnerLinks(startLink);
+        String[] innerLinks = findInnerLinks(startLink);
         for(String innerLink : innerLinks){
             if(findLink(innerLink, endLink, depth-1)){
                 path.add(startLink);
@@ -61,10 +65,80 @@ public class WikiGame {
         return false;
     }
 
-    ArrayList<String> findInnerLinks(String link){
-        ArrayList<String> innerLinks = new ArrayList<>();
+    String[] findInnerLinks(String link){
+        String[] innerLinks = readUrl(link);
+
 
         return innerLinks;
+    }
+
+    //Turns a into the links by calling href and src
+    String[] readUrl(String link){
+        ArrayList<String> listOfLinks= new ArrayList<>();
+        try{
+            URL url = new URL(link);
+            URLConnection urlc = url.openConnection();
+            urlc.setRequestProperty("User-Agent", "Mozilla 5.0 (Windows; U; " + "Windows NT 5.1; en-US; rv:1.8.0.11) ");
+
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(urlc.getInputStream())
+            );
+            String line;
+            while ( (line = reader.readLine()) != null ) {
+                href(line, listOfLinks);
+                src(line, listOfLinks);
+            }
+            //adding all links with href and or src and or multiple to links arraylist
+        }catch(Exception e){
+            //System.out.println("getLinks");
+            return null;
+        }
+        String[] allLinks = new String[listOfLinks.size()];
+        for(int i = 0; i < listOfLinks.size(); i++){
+            allLinks[i] = listOfLinks.get(i);
+        }
+        return allLinks;
+        //converting the links to an array to return
+    }
+
+    //Helper readUrls function that takes in a line and adds any links if the link has href to the arraylist
+    void href(String line, ArrayList<String> links){
+        //adding all the links with href in a line to the arraylist
+        String[] parts = line.split("href=");
+        for(int i = parts.length-1; i >0; i--){
+            String after = parts[i].substring(1);
+            int quoteIndex = after.indexOf("\"");
+            int apostropheIndex = after.indexOf("\'");
+            if(quoteIndex < 0){
+                quoteIndex = after.length();
+            }
+            if(apostropheIndex < 0){
+                apostropheIndex = after.length();
+            }
+            int index = Math.min(quoteIndex, apostropheIndex);
+            String link = after.substring(0,index);
+            links.add(link);
+        }
+    }
+    //Helper readUrls function that takes in a line and adds any links if the link has src to the arraylist
+    void src(String line, ArrayList<String> links){
+        //adding all the links with href in a line to the arraylist
+        String[] parts = line.split("src=");
+        for(int i = parts.length-1; i >0; i--){
+            String after = parts[i].substring(1);
+            int quoteIndex = after.indexOf("\"");
+            int apostropheIndex = after.indexOf("\'");
+            if(quoteIndex < 0){
+                quoteIndex = after.length();
+            }
+            if(apostropheIndex < 0){
+                apostropheIndex = after.length();
+            }
+            int index = Math.min(quoteIndex, apostropheIndex);
+            String link = after.substring(0,index);
+            links.add(link);
+        }
+        //adding all the links with src in a line to the arraylist
     }
 
     /*
