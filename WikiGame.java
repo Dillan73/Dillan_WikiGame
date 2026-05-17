@@ -4,12 +4,13 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 
 //https://en.wikipedia.org/wiki/Donald_Trump%5E^https://en.wikipedia.org/wiki/Joe_Biden
 public class WikiGame {
 
-    private int maxDepth;
+    Hashtable<String, Integer> checked = new Hashtable<>();
     private ArrayList<String> path = new ArrayList<>();
 
     public static void main(String[] args) {
@@ -18,13 +19,13 @@ public class WikiGame {
 
     public WikiGame() {
 
-        String startLink = "https://en.wikipedia.org/wiki/Donald_Trump%5E";  // beginning link, where the program will start
-        String endLink = "https://en.wikipedia.org/wiki/Joe_Biden";    // ending link, where the program is trying to get to
-        maxDepth = 1;           // start this at 1 or 2, and if you get it going fast, increase
+        String startLink = "https://en.wikipedia.org/wiki/Joe_Biden";  // beginning link, where the program will start
+        String endLink = "https://en.wikipedia.org/wiki/Blind_taste_test";    // ending link, where the program is trying to get to
+        int maxRecursiveDepth = 2;           // start this at 1 or 2, and if you get it going fast, increase
 
-        for(maxDepth = 0; maxDepth < 2; maxDepth++){
+        for(int maxDepth = 0; maxDepth < maxRecursiveDepth; maxDepth++){
             if(findLink(startLink, endLink, maxDepth)){
-                path.add(startLink);
+                //path.add(startLink);
                 break;
             }
             //done cuz js moving to next iteration otherwise
@@ -34,7 +35,7 @@ public class WikiGame {
             System.out.println(path);
             //do wtvr w this path that we need to do
         } else {
-            System.out.println("did not found it********************************************************************");
+            System.out.println("did not find it********************************************************************");
         }
 
     }
@@ -42,26 +43,30 @@ public class WikiGame {
     // recursion method
     public boolean findLink(String startLink, String endLink, int depth) {
 
-        System.out.println("depth is: " + depth + ", link is: " + startLink);
-
-        //didnt get there in curr value of maxDepth
-        if (depth < 0){
-            return false;
-        }
-
         //found it
         if(startLink.equals(endLink)){
-            path.add(startLink);
+            path.addFirst(endLink);
             return true;
         }
 
+        //didnt get there in curr value of maxDepth
+        if (depth == 0){
+            return false;
+        }
+
+        //System.out.println("depth is: " + depth + ", link is: " + startLink);
+
         //check all links
         String[] innerLinks = findInnerLinks(startLink);
+        if(innerLinks == null){
+            return false;
+        }
         for(String innerLink : innerLinks){
             if(findLink(innerLink, endLink, depth-1)){
-                path.add(startLink);
+                path.addFirst(startLink);
                 return true;
             }
+
         }
 
         //false if no possibilities work
@@ -69,14 +74,6 @@ public class WikiGame {
     }
 
     String[] findInnerLinks(String link){
-        String[] innerLinks = readUrl(link);
-
-
-        return innerLinks;
-    }
-
-    //Turns a into the links by calling href and src
-    String[] readUrl(String link){
         ArrayList<String> listOfLinks= new ArrayList<>();
         try{
             URL url = new URL(link);
@@ -88,9 +85,11 @@ public class WikiGame {
             );
             String line;
             while ( (line = reader.readLine()) != null ) {
-                href(line, listOfLinks);
-                src(line, listOfLinks);
-                System.out.println(listOfLinks);
+                //instead of this, should probably split by "/wiki/" and then take remainder of link
+                String[] hrefParts = line.split("href=");
+                String[] srcParts = line.split("href=");
+                addLinks(hrefParts, listOfLinks);
+                addLinks(srcParts, listOfLinks);
             }
             //adding all links with href and or src and or multiple to links arraylist
         }catch(Exception e){
@@ -99,19 +98,20 @@ public class WikiGame {
         }
         String[] allLinks = new String[listOfLinks.size()];
         for(int i = 0; i < listOfLinks.size(); i++){
-            allLinks[i] = listOfLinks.get(i);
-
+            allLinks[i] = "https://en.wikipedia.org" + listOfLinks.get(i);
         }
         return allLinks;
         //converting the links to an array to return
     }
 
     //Helper readUrls function that takes in a line and adds any links if the link has href to the arraylist
-    void href(String line, ArrayList<String> links){
+    void addLinks(String[] parts, ArrayList<String> links){
         //adding all the links with href in a line to the arraylist
-        String[] parts = line.split("href=");
         for(int i = parts.length-1; i >0; i--){
             String after = parts[i].substring(1);
+            if(!after.startsWith("/wiki/")){
+                continue;
+            }
             int quoteIndex = after.indexOf("\"");
             int apostropheIndex = after.indexOf("\'");
             if(quoteIndex < 0){
@@ -125,26 +125,7 @@ public class WikiGame {
             links.add(link);
         }
     }
-    //Helper readUrls function that takes in a line and adds any links if the link has src to the arraylist
-    void src(String line, ArrayList<String> links){
-        //adding all the links with href in a line to the arraylist
-        String[] parts = line.split("src=");
-        for(int i = parts.length-1; i >0; i--){
-            String after = parts[i].substring(1);
-            int quoteIndex = after.indexOf("\"");
-            int apostropheIndex = after.indexOf("\'");
-            if(quoteIndex < 0){
-                quoteIndex = after.length();
-            }
-            if(apostropheIndex < 0){
-                apostropheIndex = after.length();
-            }
-            int index = Math.min(quoteIndex, apostropheIndex);
-            String link = after.substring(0,index);
-            links.add(link);
-        }
-        //adding all the links with src in a line to the arraylist
-    }
+
 
     /*
         recursive function:
