@@ -26,6 +26,7 @@ public class WikiGame {
         String endLink = "https://en.wikipedia.org/wiki/Views_of_Kanye_West";    // ending link, where the program is trying to get to
         int maxRecursiveDepth = 2;           // start this at 1 or 2, and if you get it going fast, increase
 
+        long time = System.currentTimeMillis();
         for(int maxDepth = 0; maxDepth <= maxRecursiveDepth; maxDepth++){
             if(findLink(startLink, endLink, maxDepth)){
                 //path.add(startLink);
@@ -33,12 +34,15 @@ public class WikiGame {
             }
             //done cuz js moving to next iteration otherwise
         }
+        time = System.currentTimeMillis() - time;
         if(!path.isEmpty()){
             System.out.println("found it********************************************************************");
             System.out.println(path);
+            System.out.println("time taken: " + time);
             //do wtvr w this path that we need to do
         } else {
             System.out.println("did not find it********************************************************************");
+            System.out.println("time taken: " + time);
         }
 
     }
