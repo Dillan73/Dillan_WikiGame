@@ -16,14 +16,17 @@ public class WikiGame {
     public static void main(String[] args) {
         WikiGame w = new WikiGame();
     }
-
+    //https://en.wikipedia.org/wiki/Joe_Biden
+    //https://en.wikipedia.org/wiki/Donald_Trump
+    //https://en.wikipedia.org/wiki/Category:American_sex_offenders
+    //https://en.wikipedia.org/wiki/Views_of_Kanye_West
     public WikiGame() {
 
-        String startLink = "https://en.wikipedia.org/wiki/Joe_Biden";  // beginning link, where the program will start
-        String endLink = "https://en.wikipedia.org/wiki/Blind_taste_test";    // ending link, where the program is trying to get to
+        String startLink = "https://en.wikipedia.org/wiki/Donald_Trump";  // beginning link, where the program will start
+        String endLink = "https://en.wikipedia.org/wiki/Views_of_Kanye_West";    // ending link, where the program is trying to get to
         int maxRecursiveDepth = 2;           // start this at 1 or 2, and if you get it going fast, increase
 
-        for(int maxDepth = 0; maxDepth < maxRecursiveDepth; maxDepth++){
+        for(int maxDepth = 0; maxDepth <= maxRecursiveDepth; maxDepth++){
             if(findLink(startLink, endLink, maxDepth)){
                 //path.add(startLink);
                 break;
