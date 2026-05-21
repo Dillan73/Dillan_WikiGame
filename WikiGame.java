@@ -98,6 +98,7 @@ public class WikiGame {
                 addLinks(hrefParts, listOfLinks);
                 addLinks(srcParts, listOfLinks);
             }
+            /
             //adding all links with href and or src and or multiple to links arraylist
         }catch(Exception e){
             //System.out.println("getLinks");
