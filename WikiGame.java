@@ -92,7 +92,6 @@ public class WikiGame {
             );
             String line;
             while ( (line = reader.readLine()) != null ) {
-                //instead of this, should probably split by "/wiki/" and then take remainder of link
                 String[] hrefParts = line.split("href=");
                 String[] srcParts = line.split("src=");
                 addLinks(hrefParts, listOfLinks);
