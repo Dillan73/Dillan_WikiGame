@@ -5,17 +5,26 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Set;
+import java.util.TreeSet;
+/*
+https://www.codecademy.com/resources/docs/java/comparable
+
+ */
 
 
 //https://en.wikipedia.org/wiki/Donald_Trump%5E^https://en.wikipedia.org/wiki/Joe_Biden
 public class WikiGame {
 
     Hashtable<String, Integer> checked = new Hashtable<>();
-    private ArrayList<String> path = new ArrayList<>();
+    ArrayList<String> path = new ArrayList<>();
+    TreeSet<Link> linksToCheck = new TreeSet<>();
+
 
     public static void main(String[] args) {
         WikiGame w = new WikiGame();
     }
+
     //https://en.wikipedia.org/wiki/Joe_Biden
     //https://en.wikipedia.org/wiki/Donald_Trump
     //https://en.wikipedia.org/wiki/Category:American_sex_offenders
@@ -91,13 +100,13 @@ public class WikiGame {
                     new InputStreamReader(urlc.getInputStream())
             );
             String line;
-            while ( (line = reader.readLine()) != null ) {
+            while ( (line = reader.readLine()) != null ) { //
                 String[] hrefParts = line.split("href=");
                 String[] srcParts = line.split("src=");
                 addLinks(hrefParts, listOfLinks);
                 addLinks(srcParts, listOfLinks);
             }
-
+//
             //adding all links with href and or src and or multiple to links arraylist
         }catch(Exception e){
             //System.out.println("getLinks");
