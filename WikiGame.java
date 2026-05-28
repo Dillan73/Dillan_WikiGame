@@ -18,8 +18,12 @@ public class WikiGame {
 
     Hashtable<String, Integer> checked = new Hashtable<>();
     ArrayList<String> path = new ArrayList<>();
-    TreeSet<Link> linksToCheck = new TreeSet<>();
+    TreeSet<Link> toCheck = new TreeSet<>();
+    boolean stopTS = false;
 
+    String startLink = "https://en.wikipedia.org/wiki/Donald_Trump";  // beginning link, where the program will start
+    String endLink = "https://en.wikipedia.org/wiki/My_Beautiful_Dark_Twisted_Fantasy";    // ending link, where the program is trying to get to
+    int maxDepth = 3;
 
     public static void main(String[] args) {
         WikiGame w = new WikiGame();
@@ -31,18 +35,21 @@ public class WikiGame {
     //https://en.wikipedia.org/wiki/Views_of_Kanye_West
     public WikiGame() {
 
-        String startLink = "https://en.wikipedia.org/wiki/Donald_Trump";  // beginning link, where the program will start
-        String endLink = "https://en.wikipedia.org/wiki/Views_of_Kanye_West";    // ending link, where the program is trying to get to
-        int maxRecursiveDepth = 2;           // start this at 1 or 2, and if you get it going fast, increase
+
 
         long time = System.currentTimeMillis();
-        for(int maxDepth = 0; maxDepth <= maxRecursiveDepth; maxDepth++){
-            if(findLink(startLink, endLink, maxDepth)){
-                //path.add(startLink);
-                break;
-            }
-            //done cuz js moving to next iteration otherwise
+//        for(int depth = 0; depth <= maxDepth; depth++){
+//            if(findLink(startLink, endLink, depth)){
+//                //path.add(startLink);
+//                break;
+//            }
+//            //done cuz js moving to next iteration otherwise
+//        }
+        toCheck.add(new Link(startLink, 0));
+        while(!toCheck.isEmpty() && !stopTS){
+            findLink(toCheck, endLink);
         }
+
         time = System.currentTimeMillis() - time;
         if(!path.isEmpty()){
             System.out.println("found it********************************************************************");
@@ -57,36 +64,46 @@ public class WikiGame {
     }
 
     // recursion method
-    public boolean findLink(String startLink, String endLink, int depth) {
+    public boolean findLink(TreeSet<Link> toCheck, String endLink) {
+        Link currLinkVariable = toCheck.pollFirst();
+        String currLink = currLinkVariable.url;
+        int depth = currLinkVariable.depth;
+
+        if (!checked.containsKey(currLink) || checked.get(currLink) <= depth){
+            return findLink(toCheck, endLink);
+        }
+        checked.put(currLink, depth);
+
+        //didnt get there
+        if(depth > maxDepth){
+            return false;
+        }
 
         //found it
-        if(startLink.equals(endLink)){
+        if(currLink.equals(endLink)){
             path.addFirst(endLink);
             return true;
         }
 
-        //didnt get there in curr value of maxDepth
-        if (depth == 0){
-            return false;
+        //no need to add links off of this
+        if (depth == maxDepth){
+            return findLink(toCheck, endLink);
         }
 
-        //System.out.println("depth is: " + depth + ", link is: " + startLink);
+        System.out.println("depth is: " + depth + ", link is: " + startLink);
 
         //check all links
-        String[] innerLinks = findInnerLinks(startLink);
+        String[] innerLinks = findInnerLinks(currLink);
         if(innerLinks == null){
-            return false;
+            return findLink(toCheck, endLink);
         }
         for(String innerLink : innerLinks){
-            if(findLink(innerLink, endLink, depth-1)){
-                path.addFirst(startLink);
-                return true;
-            }
+            toCheck.add(new Link(innerLink, depth+1));
 
         }
 
         //false if no possibilities work
-        return false;
+        return findLink(toCheck, endLink);
     }
 
     String[] findInnerLinks(String link){
