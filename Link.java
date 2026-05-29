@@ -10,4 +10,8 @@ public class Link implements Comparable<Link>{
     public int compareTo(Link other){
         return Integer.compare(this.depth, other.depth);
     }
+
+    public void printInfo(){
+        System.out.println("url is " + url + " at a depth of " + depth);
+    }
 }

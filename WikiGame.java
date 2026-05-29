@@ -99,7 +99,7 @@ public class WikiGame {
         }
         for(String innerLink : innerLinks){
             toCheck.add(new Link(innerLink, depth+1));
-
+            System.out.println();
         }
 
         //false if no possibilities work
