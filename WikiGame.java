@@ -13,7 +13,7 @@ https://www.codecademy.com/resources/docs/java/comparable
  */
 
 
-//https://en.wikipedia.org/wiki/Donald_Trump%5E^https://en.wikipedia.org/wiki/Joe_Biden
+//https://en.wikipedia.org/wiki/Donald_Trump^https://en.wikipedia.org/wiki/Joe_Biden
 public class WikiGame {
 
     Hashtable<String, Integer> checked = new Hashtable<>();
@@ -22,7 +22,7 @@ public class WikiGame {
     boolean stopTS = false;
 
     String startLink = "https://en.wikipedia.org/wiki/Donald_Trump";  // beginning link, where the program will start
-    String endLink = "https://en.wikipedia.org/wiki/My_Beautiful_Dark_Twisted_Fantasy";    // ending link, where the program is trying to get to
+    String endLink = "https://en.wikipedia.org/wiki/Wyoming_Democratic_Party";    // ending link, where the program is trying to get to
     int maxDepth = 3;
 
     public static void main(String[] args) {
@@ -46,9 +46,7 @@ public class WikiGame {
 //            //done cuz js moving to next iteration otherwise
 //        }
         toCheck.add(new Link(startLink, 0));
-        while(!toCheck.isEmpty() && !stopTS){
-            findLink(toCheck, endLink);
-        }
+        findLink();
 
         time = System.currentTimeMillis() - time;
         if(!path.isEmpty()){
@@ -64,46 +62,64 @@ public class WikiGame {
     }
 
     // recursion method
-    public boolean findLink(TreeSet<Link> toCheck, String endLink) {
+    public boolean findLink() {
+        if(toCheck.isEmpty()){
+            return false;
+        }
         Link currLinkVariable = toCheck.pollFirst();
+//        System.out.println("toCheck is " + toCheck);
+        System.out.println("to check has a size of " + toCheck.size());
         String currLink = currLinkVariable.url;
         int depth = currLinkVariable.depth;
 
-        if (!checked.containsKey(currLink) || checked.get(currLink) <= depth){
-            return findLink(toCheck, endLink);
+        if (checked.containsKey(currLink) && checked.get(currLink) <= depth){
+            System.out.println("Thinks we have checked " + currLink);
+            System.out.println(checked.get(currLink));
+            return findLink();
         }
         checked.put(currLink, depth);
+        System.out.println("Added " + currLink + " at a depth of " + depth + " to the hashSet");
 
         //didnt get there
         if(depth > maxDepth){
+            System.out.println("thinks its at max depth");
             return false;
         }
 
         //found it
         if(currLink.equals(endLink)){
+            System.out.println("thinks it found it");
             path.addFirst(endLink);
             return true;
         }
 
         //no need to add links off of this
         if (depth == maxDepth){
-            return findLink(toCheck, endLink);
+            return findLink();
         }
 
-        System.out.println("depth is: " + depth + ", link is: " + startLink);
+        System.out.println("depth is: " + depth + ", link is: " + currLink);
 
         //check all links
         String[] innerLinks = findInnerLinks(currLink);
         if(innerLinks == null){
-            return findLink(toCheck, endLink);
+            return findLink();
         }
+        int added = 0;
         for(String innerLink : innerLinks){
-            toCheck.add(new Link(innerLink, depth+1));
-            System.out.println();
+            if(innerLink.equals(endLink)){
+                path.addFirst(innerLink);
+                path.addFirst(currLink);
+                return true;
+            }
+            Link temp = new Link(innerLink, depth+1);
+            //System.out.println(temp.toString());
+            toCheck.add(temp);
+            //System.out.println(innerLink);
+            added++;
         }
-
-        //false if no possibilities work
-        return findLink(toCheck, endLink);
+        System.out.println("Made it to the end and added " + added + " links");
+        return findLink();
     }
 
     String[] findInnerLinks(String link){
@@ -142,7 +158,7 @@ public class WikiGame {
         //adding all the links with href in a line to the arraylist
         for(int i = parts.length-1; i >0; i--){
             String after = parts[i].substring(1);
-            if(!after.startsWith("/wiki/")){
+            if(!after.startsWith("/wiki/") || after.contains(":")){
                 continue;
             }
             int quoteIndex = after.indexOf("\"");
