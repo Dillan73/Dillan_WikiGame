@@ -1,3 +1,4 @@
+//todo: add comments
 //this is the custom class i made to add to the treeset
 //  I wanted to sort by depth, but also need the actual url, so i made this class so id be able to store both data values in the same instance
 public class Link implements Comparable<Link>{
