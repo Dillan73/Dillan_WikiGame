@@ -6,9 +6,9 @@ import java.net.URLConnection;
 import java.util.*;
 
 public class WikiGame {
-//    long timeForOpening = 0;
-//    long timeForParsing = 0;
-//    int timesRan = 0;
+    long timeForOpening = 0;
+    long timeForParsing = 0;
+    int timesRan = 0;
 
     Hashtable<String, String> origins = new Hashtable<>(); //where i store links' origins (to prevent dupes and remake the path)
 
@@ -21,9 +21,9 @@ public class WikiGame {
     int maxDepth; //the max depth its allowed to go to
     int k;
 
-//    long time = System.currentTimeMillis();
-//    long currTime = 0;
-//    long timeTaken = 0;
+    long time = System.currentTimeMillis();
+    long currTime = 0;
+    long timeTaken = 0;
 
     public WikiGame(String start, String end, int maxDepth, int k) {
         this.startLink = start;
@@ -49,7 +49,7 @@ public class WikiGame {
 
     // recursion method
     public boolean findLink() {
-//        timesRan++;
+        timesRan++;
 
         if(toCheck.isEmpty()){ //nothing to check
             System.out.println("toCheck became empty");
@@ -69,23 +69,26 @@ public class WikiGame {
         System.out.println("running with " + currLink);
 
         //grabs all links from this link and adds it to toCheck
-//        currTime = System.currentTimeMillis();
+        currTime = System.currentTimeMillis();
 
         HtmlParser parser = new HtmlParser(currLink);
         HashSet<String> innerLinks = parser.findInnerLinks();
 
-//        timeForParsing+=parser.timeForParsing;
-//        timeForOpening+=parser.timeForOpening;
-//
-//        timeTaken = System.currentTimeMillis() - currTime;
-//
-//        System.out.println("findInners took: " + timeTaken);
+        timeForParsing+=parser.timeForParsing;
+        timeForOpening+=parser.timeForOpening;
+
+        timeTaken = System.currentTimeMillis() - currTime;
+
+        System.out.println("findInners took: " + timeTaken);
 
         if(innerLinks == null){
             return findLink();
         }
 
         double limiter = ((double) k)/innerLinks.size();
+        if(innerLinks.size() == 1){
+            limiter = 1;
+        }
         //System.out.println(limiter);
 
         int added = 0;
@@ -135,10 +138,10 @@ public class WikiGame {
         }
 
         System.out.println("toCheck ended with: " + toCheck.size());
-//        System.out.println("time to open connections was: " + timeForOpening);
-//        System.out.println("time for parsing was: " + timeForParsing);
-//
-//        System.out.println("in total, find links ran: " + timesRan + " times");
+        System.out.println("time to open connections was: " + timeForOpening);
+        System.out.println("time for parsing was: " + timeForParsing);
+
+        System.out.println("in total, find links ran: " + timesRan + " times");
     }
 
 }
