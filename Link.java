@@ -13,10 +13,8 @@ public class Link implements Comparable<Link>{
         if(this.depth != other.depth){
             return Integer.compare(this.depth, other.depth);
         }
-        if(!this.url.equals(other.url)){
-            return 1;
-        }
-        return 0; //this makes it so if the depth and url are the same, the links are equivalent. I did this so the treeset will filter it out as a duplicate
+        return this.url.compareTo(other.url); //returns smth thats only 0 if the urls r the same
+
     }
 
     public String toString(){

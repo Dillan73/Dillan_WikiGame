@@ -24,8 +24,8 @@ links that i used in testing and kept here to easily copy
 
 
 public class WikiGame {
+    Hashtable<String, String> origins = new Hashtable<>(); //where i store links' origins (to prevent dupes and remake the path)
 
-    Hashtable<String, Integer> checked = new Hashtable<>(); //where i store urls ive checked
     ArrayList<String> path = new ArrayList<>(); // this is the path from start to end
     TreeSet<Link> toCheck = new TreeSet<>(); //this is the treeset of links to check in order
     boolean finished = false; //this tells me im done (idt i need this but i made it)
@@ -36,6 +36,7 @@ public class WikiGame {
     int maxDepth = 3; //the max depth its allowed to go to
 
     long time = System.currentTimeMillis();
+    long currTime = 0;
     long timeTaken = 0;
 
     public static void main(String[] args) {
@@ -44,17 +45,18 @@ public class WikiGame {
 
 
     public WikiGame() {
-
         toCheck.add(new Link(startLink, 0));
-        findLink();
-        while(!path.contains(startLink)){
-            path.add(endLink); //does this here bc endLink will change
-            fillPath();
-           //i found that going to lower depths takes a pretty short time, so this progressively adds one more link to the path
+        if(startLink.equals(endLink)){
+            path.add(endLink);
+            //TODO: make this be done + connect to output
         }
+        origins.put(startLink, "THE_START_LINK");
+
+        boolean success = findLink();
+
 
         timeTaken = System.currentTimeMillis() - time;
-        if(!path.isEmpty()){
+        if(success){
             System.out.println("found it********************************************************************");
             System.out.println(path);
             System.out.println("time taken: " + timeTaken);
@@ -69,7 +71,7 @@ public class WikiGame {
 
     // recursion method
     public boolean findLink() {
-        if(toCheck.isEmpty()){ //if theres nothing to check, we failed
+        if(toCheck.isEmpty()){ //nothing to check
             return false;
         }
 
@@ -78,63 +80,56 @@ public class WikiGame {
         String currLink = currLinkVariable.url;
         int depth = currLinkVariable.depth;
 
-        if (checked.containsKey(currLink) && checked.get(currLink) <= depth){ //this checks to make sure i haven't done this process on this link.
-            return findLink(); //this now recurses without this link in toCheck
-        }
-
-        checked.put(currLink, depth);
-        //System.out.println("Added " + currLink + " at a depth of " + depth + " to the hashSet");
-
-        //didnt get there in the maxDepth allowed
-        if(depth > maxDepth){
-            System.out.println("thinks its at max depth");
+        if(depth == maxDepth){ //all links in toCheck have been checked to see if its endLink, and none are below maxDepth --> anything else that gets to endLink would go past maxDepth
             return false;
         }
 
-        //found it
-        if(currLink.equals(endLink)){
-            timeTaken = System.currentTimeMillis() - time;
-            System.out.println("thinks it found it at time = " + timeTaken);
-            path.addFirst(endLink);
-            return true;
-        }
-
-        //no need to add links off of this
-        if (depth == maxDepth){
-            return findLink();
-        }
-
-//        System.out.println("depth is: " + depth + ", link is: " + currLink);
+        System.out.println("running with " + currLink);
 
         //grabs all links from this link and adds it to toCheck
+        currTime = System.currentTimeMillis();
         String[] innerLinks = findInnerLinks(currLink);
+
+        timeTaken = System.currentTimeMillis() - currTime;
+        System.out.println("findInners took: " + timeTaken);
+        currTime = System.currentTimeMillis();
+
         if(innerLinks == null){
             return findLink();
         }
         int added = 0;
         for(String innerLink : innerLinks){
-            if(innerLink.equals(endLink)){ //sees if this innerLink is the desired link
+            if(innerLink.equals(endLink)){
                 timeTaken = System.currentTimeMillis() - time;
-                System.out.println("thinks it found it at time = " + timeTaken);
-                path.addFirst(currLink);
+                System.out.println("found it at time = " + timeTaken);
+
+                path.add(innerLink); //adds the endLink
+                fillPath(currLink); //uses origin to recursively fill the path
                 return true;
             }
+            if(origins.containsKey(innerLink)){ //if ive already seen this link
+                continue;
+            }
+
+            //if this link is new and not the end link, adds it to the origins and toCheck
+            origins.put(innerLink, currLink);
             toCheck.add(new Link(innerLink, depth+1));
             added++;
         }
-//        System.out.println("Made it to the end and added " + added + " links");
+        System.out.println("Made it to the end and added " + added + " links");
+
+        timeTaken = System.currentTimeMillis() - currTime;
+        System.out.println("rest took: " + timeTaken);
         return findLink();
     }
 
-    public void fillPath(){
-        //clears the treeset and hashtable
-        toCheck.clear();
-        checked.clear();
-
-        //runs findLink with the link found to be one before
-        endLink = path.get(0);
-        toCheck.add(new Link(startLink, 0));
-        findLink();
+    public void fillPath(String link){
+        if(link.equals("THE_START_LINK")){
+            return;
+        }
+        path.addFirst(link);
+        link = origins.get(link);
+        fillPath(link);
     }
 
     String[] findInnerLinks(String link){
@@ -142,6 +137,7 @@ public class WikiGame {
 
         //adds all links to the listOfLinks by searing for "href=" and "src="
         try{
+            long innerCurrTime = System.currentTimeMillis();
             URL url = new URL(link);
             URLConnection urlc = url.openConnection();
             urlc.setRequestProperty("User-Agent", "Mozilla 5.0 (Windows; U; " + "Windows NT 5.1; en-US; rv:1.8.0.11) ");
@@ -149,23 +145,37 @@ public class WikiGame {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(urlc.getInputStream())
             );
+
+            timeTaken = System.currentTimeMillis() - innerCurrTime;
+            System.out.println("opening the connection took: " + timeTaken);
+
+            innerCurrTime = System.currentTimeMillis();
+
             String line;
+            int total = 0;
             while ( (line = reader.readLine()) != null ) {
                 String[] hrefParts = line.split("href=");
                 String[] srcParts = line.split("src=");
                 addLinks(hrefParts, listOfLinks);
                 addLinks(srcParts, listOfLinks);
+                total += hrefParts.length + srcParts.length;
             }
+            System.out.println("total # of parts was: " + total);
+
+            timeTaken = System.currentTimeMillis() - innerCurrTime;
+            System.out.println("adding links to the ArrayList: " + timeTaken);
 
         }catch(Exception e){
             //System.out.println("getLinks");
             return null;
         }
 
+
         String[] allLinks = new String[listOfLinks.size()];
         for(int i = 0; i < listOfLinks.size(); i++){
             allLinks[i] = "https://en.wikipedia.org" + listOfLinks.get(i);
         }
+        System.out.println("total number of links was: " + allLinks.length);
         return allLinks;
         //converting the links to an array to return
     }
@@ -190,6 +200,7 @@ public class WikiGame {
             String link = after.substring(0,index);
             //adds the link to the arraylist
             links.add(link);
+
         }
     }
 
