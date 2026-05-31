@@ -204,7 +204,7 @@ public class WikiGame {
     void addLinks(String[] parts, ArrayList<String> links){
         for(int i = parts.length-1; i > 0; i--){
             String after = parts[i].substring(1);
-            if(!after.startsWith("/wiki/") || after.contains(":")){ //not a wiki link or a category/file/etc link that i can ignore
+            if(!after.startsWith("/wiki/")){ //not a wiki link or a category/file/etc link that i can ignore
                 continue;
             }
             //cuts extra part after each link
@@ -218,6 +218,9 @@ public class WikiGame {
             }
             int index = Math.min(quoteIndex, apostropheIndex);
             String link = after.substring(0,index);
+            if(link.contains(":")){
+                continue;
+            }
             //adds the link to the arraylist
             links.add(link);
 
