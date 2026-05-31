@@ -34,7 +34,7 @@ public class WikiGame {
 
     //TODO: connect to input
     String startLink = "https://en.wikipedia.org/wiki/League_of_Nations";  // beginning link, where the program will start
-    String endLink = "https://en.wikipedia.org/wiki/Documentary_film";    // ending link, where the program is trying to get to
+    String endLink = "https://en.wikipedia.org/wiki/United_Nations_Office_on_Drugs_and_Crime";    // ending link, where the program is trying to get to
     int maxDepth = 2; //the max depth its allowed to go to
 
     long time = System.currentTimeMillis();
@@ -45,37 +45,17 @@ public class WikiGame {
         WikiGame w = new WikiGame();
     }
 
-
     public WikiGame() {
-        toCheck.add(new Link(startLink, 0));
         if(startLink.equals(endLink)){
             path.add(endLink);
-            //TODO: make this be done + connect to output
+            output(true);
         }
+
+        toCheck.add(new Link(startLink, 0));
         origins.put(startLink, "THE_START_LINK");
 
         boolean success = findLink();
-
-
-        timeTaken = System.currentTimeMillis() - time;
-        if(success){
-            System.out.println("found it********************************************************************");
-            System.out.println(path);
-            System.out.println("time taken: " + timeTaken);
-            //TODO:connect to output
-        } else {
-            System.out.println("did not find it********************************************************************");
-            System.out.println("time taken: " + timeTaken);
-            //TODO:connect to output
-        }
-
-        System.out.println("toCheck ended with: " + toCheck.size());
-        System.out.println("time to open connections was: " + timeForOpening);
-        System.out.println("time for parsing was: " + timeForParsing);
-        System.out.println("other time was: " + (timeTaken-timeForOpening-timeForParsing));
-
-        System.out.println("in total, find links ran: " + timesRan + " times");
-
+        output(success);
     }
 
     // recursion method
@@ -99,12 +79,16 @@ public class WikiGame {
 
         //grabs all links from this link and adds it to toCheck
         currTime = System.currentTimeMillis();
-        String[] innerLinks = findInnerLinks(currLink);
+
+        HtmlParser parser = new HtmlParser(currLink);
+        String[] innerLinks = parser.findInnerLinks();
+
+        timeForParsing+=parser.timeForParsing;
+        timeForOpening+=parser.timeForOpening;
 
         timeTaken = System.currentTimeMillis() - currTime;
 
         System.out.println("findInners took: " + timeTaken);
-        currTime = System.currentTimeMillis();
 
         if(innerLinks == null){
             return findLink();
@@ -112,9 +96,6 @@ public class WikiGame {
         int added = 0;
         for(String innerLink : innerLinks){
             if(innerLink.equals(endLink)){
-                timeTaken = System.currentTimeMillis() - time;
-                System.out.println("*****found it at time = " + timeTaken);
-
                 path.add(innerLink); //adds the endLink
                 fillPath(currLink); //uses origin to recursively fill the path
                 return true;
@@ -130,8 +111,6 @@ public class WikiGame {
         }
         System.out.println("Made it to the end and added " + added + " links");
 
-        timeTaken = System.currentTimeMillis() - currTime;
-        System.out.println("rest took: " + timeTaken);
         return findLink();
     }
 
@@ -144,117 +123,24 @@ public class WikiGame {
         fillPath(link);
     }
 
-    String[] findInnerLinks(String link){
-        ArrayList<String> listOfLinks= new ArrayList<>();
-
-        //adds all links to the listOfLinks by searing for "href=" and "src="
-        try{
-            long innerCurrTime = System.currentTimeMillis();
-            URL url = new URL(link);
-            URLConnection urlc = url.openConnection();
-            urlc.setRequestProperty("User-Agent", "Mozilla 5.0 (Windows; U; " + "Windows NT 5.1; en-US; rv:1.8.0.11) ");
-
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(urlc.getInputStream())
-            );
-
-            timeTaken = System.currentTimeMillis() - innerCurrTime;
-            System.out.println("opening the connection took: " + timeTaken);
-            timeForOpening += timeTaken;
-
-            innerCurrTime = System.currentTimeMillis();
-
-            String line;
-
-            int total = 0;
-            while ( (line = reader.readLine()) != null ) {
-                if(!line.contains("/wiki/")){
-                    continue;
-                }
-                String[] hrefParts = line.split("href=");
-                String[] srcParts = line.split("src=");
-                addLinks(hrefParts, listOfLinks);
-                addLinks(srcParts, listOfLinks);
-//                System.out.println(line);
-                total += hrefParts.length + srcParts.length;
-//                System.out.println(total);
-            }
-            System.out.println("total # of parts was: " + total);
-
-            timeTaken = System.currentTimeMillis() - innerCurrTime;
-            System.out.println("adding links to the ArrayList took: " + timeTaken);
-            timeForParsing += timeTaken;
-
-        }catch(Exception e){
-            //System.out.println("getLinks");
-            return null;
+    private void output(boolean found) {
+        timeTaken = System.currentTimeMillis() - time;
+        if(found){
+            System.out.println("found it********************************************************************");
+            System.out.println(path);
+            System.out.println("time taken: " + timeTaken);
+            //TODO:connect to output
+        } else {
+            System.out.println("did not find it********************************************************************");
+            System.out.println("time taken: " + timeTaken);
+            //TODO:connect to output
         }
 
+        System.out.println("toCheck ended with: " + toCheck.size());
+        System.out.println("time to open connections was: " + timeForOpening);
+        System.out.println("time for parsing was: " + timeForParsing);
 
-        String[] allLinks = new String[listOfLinks.size()];
-        for(int i = 0; i < listOfLinks.size(); i++){
-            allLinks[i] = "https://en.wikipedia.org" + listOfLinks.get(i);
-        }
-        System.out.println("total number of links was: " + allLinks.length);
-        return allLinks;
-        //converting the links to an array to return
+        System.out.println("in total, find links ran: " + timesRan + " times");
     }
-
-    //Helper readUrls function that takes in a line and adds any links if the link has href to the arraylist
-    void addLinks(String[] parts, ArrayList<String> links){
-        for(int i = parts.length-1; i > 0; i--){
-            String after = parts[i].substring(1);
-            if(!after.startsWith("/wiki/")){ //not a wiki link or a category/file/etc link that i can ignore
-                continue;
-            }
-            //cuts extra part after each link
-            int quoteIndex = after.indexOf("\"");
-            int apostropheIndex = after.indexOf("\'");
-            if(quoteIndex < 0){
-                quoteIndex = after.length();
-            }
-            if(apostropheIndex < 0){
-                apostropheIndex = after.length();
-            }
-            int index = Math.min(quoteIndex, apostropheIndex);
-            String link = after.substring(0,index);
-            if(link.contains(":")){
-                continue;
-            }
-            //adds the link to the arraylist
-            links.add(link);
-
-        }
-    }
-
-
-    /*
-        recursive function:
-            base case(s):
-                if depth < 0: return false
-                if start=end:
-                    return true
-            iterative step:
-                run findInnerLinks() to get all links
-                for each link:
-                    if(run findLink(*that link*, endLink, depth-1)){
-                        add this link to the arraylist
-                        return true
-                    if false:
-                        return false
-
-        findInnerLinks():
-            use old project's code to get an arraylist of links from original url
-
-        project setup:
-            for(int i = 0; i < limit (found from speed); i++){
-                if(findLink(startLink, endLink, i)){
-                    reverse the order of the array and "return" it
-                        return as in give it back to user and break
-                }
-            }
-            sout a failure msg like ("your links r too detached for me to help")
-    */
-
 
 }
