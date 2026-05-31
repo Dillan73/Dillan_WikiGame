@@ -7,83 +7,85 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.TreeSet;
+
 /*
 https://www.codecademy.com/resources/docs/java/comparable
 
+links that i used in testing and kept here to easily copy
+    //https://en.wikipedia.org/wiki/Joe_Biden
+    //https://en.wikipedia.org/wiki/Donald_Trump
+    //https://en.wikipedia.org/wiki/Category:American_sex_offenders
+    //https://en.wikipedia.org/wiki/Views_of_Kanye_West
+    //https://en.wikipedia.org/wiki/Wyoming_Democratic_Party
+    //https://en.wikipedia.org/wiki/The_College_Dropout
+
+    //https://www.thewikigame.com/play/String_theory
  */
 
 
-//https://en.wikipedia.org/wiki/Donald_Trump^https://en.wikipedia.org/wiki/Joe_Biden
 public class WikiGame {
 
-    Hashtable<String, Integer> checked = new Hashtable<>();
-    ArrayList<String> path = new ArrayList<>();
-    TreeSet<Link> toCheck = new TreeSet<>();
-    boolean stopTS = false;
+    Hashtable<String, Integer> checked = new Hashtable<>(); //where i store urls ive checked
+    ArrayList<String> path = new ArrayList<>(); // this is the path from start to end
+    TreeSet<Link> toCheck = new TreeSet<>(); //this is the treeset of links to check in order
+    boolean finished = false; //this tells me im done (idt i need this but i made it)
 
+    //TODO: connect to input
     String startLink = "https://en.wikipedia.org/wiki/Donald_Trump";  // beginning link, where the program will start
-    String endLink = "https://en.wikipedia.org/wiki/Wyoming_Democratic_Party";    // ending link, where the program is trying to get to
-    int maxDepth = 3;
+    String endLink = "https://en.wikipedia.org/wiki/The_College_Dropout";    // ending link, where the program is trying to get to
+    int maxDepth = 3; //the max depth its allowed to go to
+
+    long time = System.currentTimeMillis();
+    long timeTaken = 0;
 
     public static void main(String[] args) {
         WikiGame w = new WikiGame();
     }
 
-    //https://en.wikipedia.org/wiki/Joe_Biden
-    //https://en.wikipedia.org/wiki/Donald_Trump
-    //https://en.wikipedia.org/wiki/Category:American_sex_offenders
-    //https://en.wikipedia.org/wiki/Views_of_Kanye_West
+
     public WikiGame() {
 
-
-
-        long time = System.currentTimeMillis();
-//        for(int depth = 0; depth <= maxDepth; depth++){
-//            if(findLink(startLink, endLink, depth)){
-//                //path.add(startLink);
-//                break;
-//            }
-//            //done cuz js moving to next iteration otherwise
-//        }
         toCheck.add(new Link(startLink, 0));
         findLink();
         while(!path.contains(startLink)){
-           fillPath();
+            path.add(endLink); //does this here bc endLink will change
+            fillPath();
+           //i found that going to lower depths takes a pretty short time, so this progressively adds one more link to the path
         }
 
-        time = System.currentTimeMillis() - time;
+        timeTaken = System.currentTimeMillis() - time;
         if(!path.isEmpty()){
             System.out.println("found it********************************************************************");
             System.out.println(path);
-            System.out.println("time taken: " + time);
-            //do wtvr w this path that we need to do
+            System.out.println("time taken: " + timeTaken);
+            //TODO:connect to output
         } else {
             System.out.println("did not find it********************************************************************");
-            System.out.println("time taken: " + time);
+            System.out.println("time taken: " + timeTaken);
+            //TODO:connect to output
         }
 
     }
 
     // recursion method
     public boolean findLink() {
-        if(toCheck.isEmpty()){
+        if(toCheck.isEmpty()){ //if theres nothing to check, we failed
             return false;
         }
+
+        //takes the first link from the treeset and its data
         Link currLinkVariable = toCheck.pollFirst();
-//        System.out.println("toCheck is " + toCheck);
-        System.out.println("to check has a size of " + toCheck.size());
         String currLink = currLinkVariable.url;
         int depth = currLinkVariable.depth;
 
-        if (checked.containsKey(currLink) && checked.get(currLink) <= depth){
-            //have seen this work with outputs
-            //System.out.println(checked.get(currLink));
-            return findLink();
+        if (checked.containsKey(currLink) && checked.get(currLink) <= depth){ //this checks to make sure i haven't done this process on this link.
+            return findLink(); //this now recurses without this link in toCheck
         }
-        checked.put(currLink, depth);
-        System.out.println("Added " + currLink + " at a depth of " + depth + " to the hashSet");
 
-        //didnt get there
+        checked.put(currLink, depth);
+        //System.out.println("Added " + currLink + " at a depth of " + depth + " to the hashSet");
+
+        //didnt get there in the maxDepth allowed
         if(depth > maxDepth){
             System.out.println("thinks its at max depth");
             return false;
@@ -91,7 +93,8 @@ public class WikiGame {
 
         //found it
         if(currLink.equals(endLink)){
-            System.out.println("thinks it found it");
+            timeTaken = System.currentTimeMillis() - time;
+            System.out.println("thinks it found it at time = " + timeTaken);
             path.addFirst(endLink);
             return true;
         }
@@ -101,34 +104,34 @@ public class WikiGame {
             return findLink();
         }
 
-        System.out.println("depth is: " + depth + ", link is: " + currLink);
+//        System.out.println("depth is: " + depth + ", link is: " + currLink);
 
-        //check all links
+        //grabs all links from this link and adds it to toCheck
         String[] innerLinks = findInnerLinks(currLink);
         if(innerLinks == null){
             return findLink();
         }
         int added = 0;
         for(String innerLink : innerLinks){
-            if(innerLink.equals(endLink)){
-                //path.addFirst(innerLink);
+            if(innerLink.equals(endLink)){ //sees if this innerLink is the desired link
+                timeTaken = System.currentTimeMillis() - time;
+                System.out.println("thinks it found it at time = " + timeTaken);
                 path.addFirst(currLink);
                 return true;
             }
-            Link temp = new Link(innerLink, depth+1);
-            //System.out.println(temp.toString());
-            toCheck.add(temp);
-            //System.out.println(innerLink);
+            toCheck.add(new Link(innerLink, depth+1));
             added++;
         }
-        System.out.println("Made it to the end and added " + added + " links");
+//        System.out.println("Made it to the end and added " + added + " links");
         return findLink();
     }
 
     public void fillPath(){
+        //clears the treeset and hashtable
         toCheck.clear();
         checked.clear();
-        path.add(endLink);
+
+        //runs findLink with the link found to be one before
         endLink = path.get(0);
         toCheck.add(new Link(startLink, 0));
         findLink();
@@ -136,6 +139,8 @@ public class WikiGame {
 
     String[] findInnerLinks(String link){
         ArrayList<String> listOfLinks= new ArrayList<>();
+
+        //adds all links to the listOfLinks by searing for "href=" and "src="
         try{
             URL url = new URL(link);
             URLConnection urlc = url.openConnection();
@@ -145,18 +150,18 @@ public class WikiGame {
                     new InputStreamReader(urlc.getInputStream())
             );
             String line;
-            while ( (line = reader.readLine()) != null ) { //
+            while ( (line = reader.readLine()) != null ) {
                 String[] hrefParts = line.split("href=");
                 String[] srcParts = line.split("src=");
                 addLinks(hrefParts, listOfLinks);
                 addLinks(srcParts, listOfLinks);
             }
-//
-            //adding all links with href and or src and or multiple to links arraylist
+
         }catch(Exception e){
             //System.out.println("getLinks");
             return null;
         }
+
         String[] allLinks = new String[listOfLinks.size()];
         for(int i = 0; i < listOfLinks.size(); i++){
             allLinks[i] = "https://en.wikipedia.org" + listOfLinks.get(i);
@@ -167,12 +172,12 @@ public class WikiGame {
 
     //Helper readUrls function that takes in a line and adds any links if the link has href to the arraylist
     void addLinks(String[] parts, ArrayList<String> links){
-        //adding all the links with href in a line to the arraylist
         for(int i = parts.length-1; i >0; i--){
             String after = parts[i].substring(1);
-            if(!after.startsWith("/wiki/") || after.contains(":")){
+            if(!after.startsWith("/wiki/") || after.contains(":")){ //not a wiki link or a category/file/etc link that i can ignore
                 continue;
             }
+            //cuts extra part after each link
             int quoteIndex = after.indexOf("\"");
             int apostropheIndex = after.indexOf("\'");
             if(quoteIndex < 0){
@@ -183,6 +188,7 @@ public class WikiGame {
             }
             int index = Math.min(quoteIndex, apostropheIndex);
             String link = after.substring(0,index);
+            //adds the link to the arraylist
             links.add(link);
         }
     }
