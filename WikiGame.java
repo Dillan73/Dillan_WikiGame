@@ -1,4 +1,4 @@
-//TODO fix that parenthesis issue
+//TODO fix that parenthesis issue?
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -47,6 +47,9 @@ public class WikiGame {
 //        }
         toCheck.add(new Link(startLink, 0));
         findLink();
+        while(!path.contains(startLink)){
+           fillPath();
+        }
 
         time = System.currentTimeMillis() - time;
         if(!path.isEmpty()){
@@ -73,8 +76,8 @@ public class WikiGame {
         int depth = currLinkVariable.depth;
 
         if (checked.containsKey(currLink) && checked.get(currLink) <= depth){
-            System.out.println("Thinks we have checked " + currLink);
-            System.out.println(checked.get(currLink));
+            //have seen this work with outputs
+            //System.out.println(checked.get(currLink));
             return findLink();
         }
         checked.put(currLink, depth);
@@ -108,7 +111,7 @@ public class WikiGame {
         int added = 0;
         for(String innerLink : innerLinks){
             if(innerLink.equals(endLink)){
-                path.addFirst(innerLink);
+                //path.addFirst(innerLink);
                 path.addFirst(currLink);
                 return true;
             }
@@ -120,6 +123,15 @@ public class WikiGame {
         }
         System.out.println("Made it to the end and added " + added + " links");
         return findLink();
+    }
+
+    public void fillPath(){
+        toCheck.clear();
+        checked.clear();
+        path.add(endLink);
+        endLink = path.get(0);
+        toCheck.add(new Link(startLink, 0));
+        findLink();
     }
 
     String[] findInnerLinks(String link){
