@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,113 +16,144 @@ public class Main {
     private int HEIGHT=700;
 
     public static void main(String[] args) {
-        String startLink = "https://en.wikipedia.org/wiki/family";  // beginning link, where the program will start
-        String endLink = "https://en.wikipedia.org/wiki/National_park";    // ending link, where the program is trying to get to
-        int maxDepth = 10; //the max depth its allowed to go to
-        int k = 12;
-
-        WikiGame wikiGame = new WikiGame(startLink, endLink, maxDepth, k);
+        Main runner = new Main();
+        runner.prepareGUI();
     }
 
-    private void prepareGUI() {
+    JTextArea startLinkTA;
+    JTextArea endLinkTA;
+    JTextArea depthTA;
+    JTextArea kTA;
+    JTextArea outputTA;
+    JTextArea processTA;
+
+    public void prepareGUI() {
         JFrame mainFrame = new JFrame("The URL-link-getter!");
         mainFrame.setSize(WIDTH, HEIGHT);
-        mainFrame.setLayout(new GridLayout(1,1));
+        mainFrame.setLayout(new BorderLayout());
         //make the main frame with a border layout
 
         CardLayout cardLayout = new CardLayout();
         JPanel cardPanel = new JPanel(cardLayout);
-
-        cardLayout.first(cardPanel);
         mainFrame.add(cardPanel, BorderLayout.CENTER);
 
+        //the intro/start panel
         JPanel starterPanel = new JPanel();
-        starterPanel.setLayout(new GridLayout(1,1));
+        starterPanel.setLayout(new BorderLayout());
         cardPanel.add(starterPanel, "Starting UI");
 
-        JButton startButton = new JButton("This is the Wiki Game! Find different paths between your start and end links!");
+        //the label and button to give info and go to the actual game
+        JLabel startLabel = new JLabel("<html>  \n  This is the Wiki Game! Find paths between different wikipedia links. Customize the links looked at per page and the max depth based on whether you care most about finding a path quickly or finding the quickest path. You may run multiple searches at once! \n <html>", JLabel.CENTER);
+        starterPanel.add(startLabel, BorderLayout.NORTH);
+
+        JButton startButton = new JButton("Click to Start");
         starterPanel.add(startButton);
+        startButton.setActionCommand("Start");
+        startButton.addActionListener(e -> cardLayout.next(cardPanel));
+        startButton.addActionListener(new ButtonClickListener());
         //TODO: make startButton work
 
+        //the main card of the cardLayout
         JPanel mainPanel = new JPanel();
-        starterPanel.setLayout(new GridLayout(3,1));
+        mainPanel.setLayout(new GridLayout(2,1));
         cardPanel.add(mainPanel, "main UI");
 
+        //a panel to input links, maxDepth, and k
         JPanel inputPanel = new JPanel();
-        starterPanel.setLayout(new GridLayout(2,1));
+        inputPanel.setLayout(new BorderLayout());
         mainPanel.add(inputPanel);
 
-        JPanel buttonPanel = new JPanel();
-        starterPanel.setLayout(new GridLayout(1,3));
-        mainPanel.add(inputPanel);
-
+        //a panel for outputs
         JPanel outputPanel = new JPanel();
-        starterPanel.setLayout(new GridLayout(1,1));
-        mainPanel.add(inputPanel);
+        outputPanel.setLayout(new GridLayout(2,1));
+        mainPanel.add(outputPanel);
 
-        JTextArea startLinkTA = new JTextArea("Replace this with your starting link!");
+        //a panel to customize maxDepth and k
+        JPanel customTAsPanel = new JPanel();
+        customTAsPanel.setLayout(new GridLayout(4, 1));
+        inputPanel.add(customTAsPanel);
+
+        //scroll panes for inputting the links
+        startLinkTA = new JTextArea("Replace this with your starting link.");
         JScrollPane startLinkSP = new JScrollPane(startLinkTA);
         startLinkTA.setLineWrap(true);
-        inputPanel.add(startLinkSP);
+        customTAsPanel.add(startLinkSP);
 
-        JTextArea endLinkTA = new JTextArea("Replace this with your ending link!");
+        endLinkTA = new JTextArea("Replace this with your ending link.");
         JScrollPane endLinkSP = new JScrollPane(endLinkTA);
-        startLinkTA.setLineWrap(true);
-        inputPanel.add(endLinkSP);
+        endLinkTA.setLineWrap(true);
+        customTAsPanel.add(endLinkSP);
 
-        //todo: hook up input TAs with the rest of code
+        //scroll panes for max depth and k
+        depthTA = new JTextArea("Replace this with the max depth a path can go through links. Leave blank to not have a depth limitation.");
+        JScrollPane depthSP = new JScrollPane(depthTA);
+        depthTA.setLineWrap(true);
+        customTAsPanel.add(depthSP);
 
-        //todo: make button panel and hook buttons up with rest of code stuff
+        kTA = new JTextArea("Replace this with how many other links a Wiki page should branch out to on average. Leave blank to branch out as much as possible from each page.");
+        JScrollPane kSP = new JScrollPane(kTA);
+        kTA.setLineWrap(true);
+        customTAsPanel.add(kSP);
 
-        //todo: make output panel and hook up output TA with rest of code
+        //the text area that wikiGame outputs to
+        processTA = new JTextArea("This will display the process being used");
+        JScrollPane processSP = new JScrollPane(processTA);
+        processTA.setLineWrap(true);
+        outputPanel.add(processSP);
 
-//        submit = new JButton(" \n \n Press to see your links! \n \n ");
-//        submit.setActionCommand("Submit");
-//        submit.addActionListener(e -> cardLayoutMain.next(cardMain));
-//        submit.addActionListener(new ButtonClickListener());
-//        //submit.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
-//        inputButtons.add(submit, BorderLayout.SOUTH);
-//        // adds the submit button to the input section
-//
-//        JButton clear = new JButton("Clear input fields");
-//        clear.setActionCommand("Clear");
-//        clear.addActionListener(new ButtonClickListener());
-//        inputButtons.add(clear);
-        // adds the clear button to the input section with an action listener
+        outputTA = new JTextArea("This is where paths will be shown. will appear");
+        JScrollPane outputSP = new JScrollPane(outputTA);
+        outputTA.setLineWrap(true);
+        outputPanel.add(outputSP);
 
-        mainFrame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent windowEvent) {
-                System.exit(0);
-            }
-        });
+        //button to run the program
+        JButton submit = new JButton(" \n \n \n Run \n \n \n ");
+        submit.setActionCommand("Submit");
+        submit.addActionListener(e -> processTA.setText("Searching..."));
+        submit.addActionListener(e -> new Thread(() -> {
+            runWikiGame();
+        }).start());
+        submit.addActionListener(new ButtonClickListener());
+        inputPanel.add(submit, BorderLayout.EAST);
+
+
         mainFrame.setVisible(true);
+    }
+
+    private void runWikiGame() {
+        //grabs the inputs from the text areas
+        String startLink = startLinkTA.getText();
+        String endLink = endLinkTA.getText();
+        int maxDepth;
+        int k;
+
+        String maxDepthString = depthTA.getText();
+        String kString = kTA.getText();
+
+        //converts k and maxDepth to rly large if left blank (no limits)
+        if(maxDepthString.equals("")){
+            maxDepth = 1000000;
+        }else{
+            maxDepth = Integer.parseInt(maxDepthString);
+        }
+
+        if(kString.equals("")){
+            k = 1000000;
+        }else{
+            k = Integer.parseInt(kString);
+        }
+
+        //Creates a WikiGame that will run with the given inputs
+        WikiGame wikiGame = new WikiGame(startLink, endLink, maxDepth, k, outputTA, processTA);
     }
 
     //Has the submit button call submitUI
     private class ButtonClickListener implements ActionListener {
+
         public void actionPerformed(ActionEvent e) {
             String command = e.getActionCommand();
-            //System.out.println("Making it to BCL");
-
-//            if (command.equals("Submit")) {
-//                boolean success = sumbitUI();
-//                if(!success){
-//                    cardLayoutMain.next(cardMain);
-//                    //making a failed run stay on the input page
-//                }
-//            }
-//            if (command.equals("Reset")) {
-//                System.out.println("Reset Works");
-//                outputText.setText("");
-//            }
-//            if (command.equals("Clear")) {
-//                System.out.println("Making it to BCL If");
-//                linkText.setText("");
-//                termText.setText("");
-//            }
         }
     }
-
 }
 
 /*
@@ -133,5 +165,7 @@ public class Main {
     //https://en.wikipedia.org/wiki/Wyoming_Democratic_Party
     //https://en.wikipedia.org/wiki/The_College_Dropout
 
-    //https://www.thewikigame.com/play/String_theory
+    //https://en.wikipedia.org/wiki/National_park
+
+    //https://www.wikipedia.org/wiki/String_theory
  */

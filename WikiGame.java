@@ -1,5 +1,6 @@
 //TODO fix that parenthesis issue?
 //todo: add comments
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -7,40 +8,44 @@ import java.net.URLConnection;
 import java.util.*;
 
 public class WikiGame {
-    long timeForOpening = 0;
-    long timeForParsing = 0;
-    int timesRan = 0;
+    Hashtable<String, String> origins = new Hashtable<>(); //How I retrace the path and check for dupes
 
-    Hashtable<String, String> origins = new Hashtable<>(); //where i store links' origins (to prevent dupes and remake the path)
+    public ArrayList<String> path = new ArrayList<>(); // where the path is put
+    ArrayDeque<Link> toCheck = new ArrayDeque<>(); //the way I store other links to check in the future (sorted by depth)
 
-    ArrayList<String> path = new ArrayList<>(); // this is the path from start to end
-    ArrayDeque<Link> toCheck = new ArrayDeque<>(); //this is the treeset of links to check in order
-
-    //TODO: connect to input
-    String startLink;  // beginning link, where the program will start
-    String endLink;    // ending link, where the program is trying to get to
-    int maxDepth; //the max depth its allowed to go to
+    //input variables
+    String startLink;
+    String endLink;
+    int maxDepth;
     int k;
 
-    long time = System.currentTimeMillis();
-    long currTime = 0;
-    long timeTaken = 0;
+    JTextArea outputTA; //how wikiGame outputs
+    JTextArea processTA; //how wikiGame shows the process
 
-    public WikiGame(String start, String end, int maxDepth, int k) {
+    long time = System.currentTimeMillis();
+
+    public WikiGame(String start, String end, int maxDepth, int k, JTextArea outputTA, JTextArea processTA) {
+        //set the inputs for this instance
         this.startLink = start;
         this.endLink = end;
         this.maxDepth = maxDepth;
         this.k = k;
 
+        this.outputTA = outputTA;
+        this.processTA = processTA;
+
+        //find a path
         pathFinder();
     }
 
     public void pathFinder(){
-        if(startLink.equals(endLink)){
-            path.add(endLink);
-            output(true);
+        //stop if the start and end link are already the same
+        if(startLink.equals(endLink)) {
+            outputTA.append("I trust you to find a way to get between these links (cuz they're the exact same already...)");
+            return;
         }
 
+        //add the start link to the
         toCheck.add(new Link(startLink, 0));
         origins.put(startLink, "THE_START_LINK");
 
@@ -50,54 +55,45 @@ public class WikiGame {
 
     // recursion method
     public boolean findLink() {
-        timesRan++;
-
         if(toCheck.isEmpty()){ //nothing to check
-            System.out.println("toCheck became empty");
+            outputTA.append("***********did not find it*********** because the list of links to check ran empty (niche ahh link btw) \n");
             return false;
         }
 
-        //takes the first link from the treeset and its data
+        //take the first link from the treeset and its data
         Link currLinkVariable = toCheck.pollFirst();
         String currLink = currLinkVariable.url;
         int depth = currLinkVariable.depth;
 
-        if(depth == maxDepth){ //all links in toCheck have been checked to see if its endLink, and none are below maxDepth --> anything else that gets to endLink would go past maxDepth
-            System.out.println("hit maxDepth.");
+        //if this link is at the maxDepth, then all in treeSet are too --> since all have been checked to see if they're endLink, can only find endLink past maxDepth --> failed
+        if(depth == maxDepth){
+            outputTA.append("***********did not find it*********** because the max depth was reached (increase that and run it back?) \n");
             return false;
         }
 
-        System.out.println("running with " + currLink);
+        processTA.setText("looking at: " + currLink + "\n");
+        System.out.println("looking at: " + currLink);
 
-        //grabs all links from this link and adds it to toCheck
-        currTime = System.currentTimeMillis();
-
+        //grabs all links from this link
         HtmlParser parser = new HtmlParser(currLink);
         HashSet<String> innerLinks = parser.findInnerLinks();
 
-        timeForParsing+=parser.timeForParsing;
-        timeForOpening+=parser.timeForOpening;
-
-        timeTaken = System.currentTimeMillis() - currTime;
-
-        System.out.println("findInners took: " + timeTaken);
-
+        //if there are no links, recurse with the deque not having this link
         if(innerLinks == null){
             return findLink();
         }
 
+        //processTA.setText("didn't find the end link in " + currLink + "'s " + innerLinks.size() + " inner links. :( \n");
+
+        //the odds each link has to be added
         double limiter = ((double) k)/innerLinks.size();
-        if(innerLinks.size() == 1){
-            limiter = 1;
-        }
-        //System.out.println(limiter);
 
         int added = 0;
         for(String innerLink : innerLinks){
             innerLink = "https://en.wikipedia.org" + innerLink;
-            if(innerLink.equals(endLink)){
-                path.add(innerLink); //adds the endLink
-                fillPath(currLink); //uses origin to recursively fill the rest of the path
+            if(innerLink.equals(endLink)){ //if we've found the end link --> fill the path
+                origins.put(innerLink, currLink);
+                fillPath(endLink); //uses origin to recursively fill the path
                 return true;
             }
 
@@ -105,44 +101,42 @@ public class WikiGame {
                 continue;
             }
 
-            //if this link is new and not the end link, adds it to the origins and toCheck
-            if(Math.random() > limiter){
+            //has a chance to skip this link unless it could leave toCheck empty
+            if(Math.random() > limiter && !toCheck.isEmpty()){
                 continue;
             }
+
+            //add this link to the HashTable and Deque
             origins.put(innerLink, currLink);
             toCheck.add(new Link(innerLink, depth+1));
             added++;
         }
-        System.out.println("Made it to the end and added " + added + " links");
+        processTA.setText("Branched out " + added + " ways from " + currLink);
 
+        //recurse
         return findLink();
     }
 
     public void fillPath(String link){
-        if(link.equals("THE_START_LINK")){
+        if(link.equals("THE_START_LINK")){ //if we finished retracing ---> stop
             return;
         }
-        path.addFirst(link);
-        link = origins.get(link);
-        fillPath(link);
+        path.add(link); //add this link
+        fillPath(origins.get(link)); //recurse with the link one step prior
     }
 
     private void output(boolean found) {
-//        timeTaken = System.currentTimeMillis() - time;
+        //previously used to sout an output, and I just kept it as a way to print the path
         if(found){
-            System.out.println("found it********************************************************************");
+            outputTA.append("***********found it*********** in " + (System.currentTimeMillis() - time) + "ms \n");
+            outputTA.append(path.get(path.size()-1));
+            for(int i = path.size()-2; i>=0; i--){
+                outputTA.append(" --> " + path.get(i));
+            }
+            outputTA.append("! \n \n");
             System.out.println(path);
-            //TODO:connect to output
-        } else {
-            System.out.println("did not find it********************************************************************");
-            //TODO:connect to output
         }
-
-        System.out.println("toCheck ended with: " + toCheck.size());
-        System.out.println("time to open connections was: " + timeForOpening);
-        System.out.println("time for parsing was: " + timeForParsing);
-
-        System.out.println("in total, find links ran: " + timesRan + " times");
+        System.out.println("The process took " + (System.currentTimeMillis() - time) + "ms \n");
     }
 
 }

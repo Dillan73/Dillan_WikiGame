@@ -33,7 +33,7 @@ public class HtmlParser {
             );
 
             timeTaken = System.currentTimeMillis() - innerCurrTime;
-            System.out.println("opening the connection took: " + timeTaken);
+            //System.out.println("opening the connection took: " + timeTaken);
             timeForOpening += timeTaken;
 
             innerCurrTime = System.currentTimeMillis();
@@ -49,14 +49,13 @@ public class HtmlParser {
                 String[] srcParts = line.split("src=");
                 addLinks(hrefParts);
                 addLinks(srcParts);
-//                System.out.println(line);
                 total += hrefParts.length + srcParts.length;
 //                System.out.println(total);
             }
-            System.out.println("total # of parts was: " + total);
+            //System.out.println("total # of parts was: " + total);
 
             timeTaken = System.currentTimeMillis() - innerCurrTime;
-            System.out.println("adding links to the ArrayList took: " + timeTaken);
+            //System.out.println("adding links to the ArrayList took: " + timeTaken);
             timeForParsing += timeTaken;
 
         }catch(Exception e){
