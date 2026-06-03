@@ -99,7 +99,7 @@ public class Main {
         processTA.setLineWrap(true);
         outputPanel.add(processSP);
 
-        outputTA = new JTextArea("This is where paths will be shown. will appear");
+        outputTA = new JTextArea("This is where paths will be shown.");
         JScrollPane outputSP = new JScrollPane(outputTA);
         outputTA.setLineWrap(true);
         outputPanel.add(outputSP);
@@ -162,6 +162,8 @@ public class Main {
     //https://en.wikipedia.org/wiki/Wyoming_Democratic_Party
     //https://en.wikipedia.org/wiki/The_College_Dropout
 
+    //https://en.wikipedia.org/wiki/Saint_Kitts_and_Nevis
+    //https://en.wikipedia.org/wiki/Train
     //https://en.wikipedia.org/wiki/National_park
 
     //https://www.wikipedia.org/wiki/String_theory
