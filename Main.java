@@ -149,9 +149,8 @@ public class Main {
 
     //Has the submit button call submitUI
     private class ButtonClickListener implements ActionListener {
-
         public void actionPerformed(ActionEvent e) {
-            String command = e.getActionCommand();
+            //String command = e.getActionCommand();
         }
     }
 }

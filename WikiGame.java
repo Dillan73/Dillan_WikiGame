@@ -56,7 +56,7 @@ public class WikiGame {
     // recursion method
     public boolean findLink() {
         if(toCheck.isEmpty()){ //nothing to check
-            outputTA.append("***********did not find it*********** because the list of links to check ran empty (niche ahh link btw) \n");
+            outputTA.append("***********did not find it*********** because the list of links to check ran empty (increase branching amount?) \n");
             return false;
         }
 
@@ -67,7 +67,7 @@ public class WikiGame {
 
         //if this link is at the maxDepth, then all in treeSet are too --> since all have been checked to see if they're endLink, can only find endLink past maxDepth --> failed
         if(depth == maxDepth){
-            outputTA.append("***********did not find it*********** because the max depth was reached (increase that and run it back?) \n");
+            outputTA.append("***********did not find it*********** because the max depth was reached (increase that or branching amount and run it back?) \n");
             return false;
         }
 
@@ -129,11 +129,14 @@ public class WikiGame {
         //previously used to sout an output, and I just kept it as a way to print the path
         if(found){
             outputTA.append("***********found it*********** in " + (System.currentTimeMillis() - time) + "ms \n");
+
+            //print the path in reverse since it was added backwards
             outputTA.append(path.get(path.size()-1));
             for(int i = path.size()-2; i>=0; i--){
                 outputTA.append(" --> " + path.get(i));
             }
             outputTA.append("! \n \n");
+
             System.out.println(path);
         }
         System.out.println("The process took " + (System.currentTimeMillis() - time) + "ms \n");

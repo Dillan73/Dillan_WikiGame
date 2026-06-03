@@ -7,9 +7,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class HtmlParser {
+
+    //time keepers i used to help improve efficiency
     public long timeForOpening = 0;
     public long timeForParsing = 0;
-
     long timeTaken = 0;
 
     String link;
@@ -24,6 +25,8 @@ public class HtmlParser {
         //adds all links to the listOfLinks by searing for "href=" and "src="
         try{
             long innerCurrTime = System.currentTimeMillis();
+
+            //opening the connection to get the html
             URL url = new URL(link);
             URLConnection urlc = url.openConnection();
             urlc.setRequestProperty("User-Agent", "Mozilla 5.0 (Windows; U; " + "Windows NT 5.1; en-US; rv:1.8.0.11) ");
@@ -40,22 +43,22 @@ public class HtmlParser {
 
             String line;
 
+            //parsing the html
             int total = 0;
             while ( (line = reader.readLine()) != null ) {
-                if(!line.contains("/wiki/")){
+                if(!line.contains("/wiki/")){ //ignoring lines w/o the chance for a wiki link
                     continue;
                 }
+
+                //splitting by href and src to find possible links
                 String[] hrefParts = line.split("href=");
                 String[] srcParts = line.split("src=");
                 addLinks(hrefParts);
                 addLinks(srcParts);
                 total += hrefParts.length + srcParts.length;
-//                System.out.println(total);
             }
-            //System.out.println("total # of parts was: " + total);
 
             timeTaken = System.currentTimeMillis() - innerCurrTime;
-            //System.out.println("adding links to the ArrayList took: " + timeTaken);
             timeForParsing += timeTaken;
 
         }catch(Exception e){
@@ -64,17 +67,17 @@ public class HtmlParser {
         }
 
         return listOfLinks;
-        //converting the links to an array to return
     }
 
     //Helper readUrls function that takes in a line and adds any links if the link has href to the arraylist
     void addLinks(String[] parts){
         for(int i = parts.length-1; i > 0; i--){
             String after = parts[i].substring(1);
-            if(!after.startsWith("/wiki/")){ //not a wiki link
+            if(!after.startsWith("/wiki/")){ //not a wiki link --> ignore it
                 continue;
             }
-            //cuts extra part after each link
+
+            //find where the link ends
             int quoteIndex = after.indexOf("\"");
             int apostropheIndex = after.indexOf("'");
             if(quoteIndex < 0){
@@ -83,6 +86,8 @@ public class HtmlParser {
             if(apostropheIndex < 0){
                 apostropheIndex = after.length();
             }
+
+            //cuts anything after the end of the link
             int index = Math.min(quoteIndex, apostropheIndex);
             String link = after.substring(0,index);
             if(link.contains(":")){ //a file/etc link that i can ignore

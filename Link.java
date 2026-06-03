@@ -1,6 +1,4 @@
-//todo: add comments
-//this is the custom class i made to add to the treeset
-//  I wanted to sort by depth, but also need the actual url, so i made this class so id be able to store both data values in the same instance
+//I wanted to sort by depth, but also need the actual url, so i made this class to be able to store both data values in the same instance (and with it, the deque)
 public class Link implements Comparable<Link>{
     public String url;
     public int depth;
@@ -10,7 +8,7 @@ public class Link implements Comparable<Link>{
         this.url = url;
     }
 
-    public int compareTo(Link other){ //for treeset comparision
+    public int compareTo(Link other){ //old way to help with sorting when i used a treeset (now its just FIFO)
         if(this.depth != other.depth){
             return Integer.compare(this.depth, other.depth);
         }
@@ -18,7 +16,7 @@ public class Link implements Comparable<Link>{
 
     }
 
-    public String toString(){
-        return "url is " + url + " at a depth of " + depth; //this I did to make it easier to print while debugging
+    public String toString(){ //this I did to make it easier to print while debugging
+        return "url is " + url + " at a depth of " + depth;
     }
 }
