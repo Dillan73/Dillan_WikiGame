@@ -6,8 +6,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-//todo: add comments
-
 public class Main {
     private JMenuBar mb;
     private JMenu file, edit, help;
